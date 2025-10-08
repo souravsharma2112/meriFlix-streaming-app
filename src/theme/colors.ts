@@ -1,10 +1,10 @@
 export const COLORS = {
-  primary: "#1E90FF",
-  secondary: "#FF6B6B",
+  primary: "#030014",
+  secondary: "#AB8BFF",
   background: "#FFFFFF",
   surface: "#F5F5F5",
   text: "#212121",
-  gray: "#9E9E9E",
+  gray: "#9CA4AB",
   border: "#E0E0E0",
   success: "#4CAF50",
   error: "#F44336",
