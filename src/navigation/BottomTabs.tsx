@@ -1,67 +1,92 @@
-/* eslint-disable react/no-unstable-nested-components */
 import React from 'react';
-import { createBottomTabNavigator, BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
-import type { RouteProp } from '@react-navigation/native';
+import { View, StyleSheet, Platform } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import HomeScreen from '../features/home/HomeScreen';
+import { moderateScale } from '../theme/metrics';
 
-// Screens
-import HomeScreen from '../screen/home/HomeScreen';
-// import ProfileScreen from '../screen/profile/ProfileScreen';
-// import SettingsScreen from '../screen/settings/SettingsScreen';
+const Tab = createBottomTabNavigator();
 
-// ✅ Define route names and their params (if any)
-export type MainTabParamList = {
-    Home: undefined;
-    Profile: undefined;
-    Settings: undefined;
+const CustomTabBar = ({ state, navigation }: any) => {
+  return (
+    <View style={styles.tabBarContainer}>
+      {state.routes.map((route: any, index: number) => {
+        // const { options } = descriptors[route.key];
+        const isFocused = state.index === index;
+
+        let iconName = '';
+        if (route.name === 'Home') iconName = isFocused ? 'home' : 'home-outline';
+        if (route.name === 'Profile') iconName = isFocused ? 'person' : 'person-outline';
+        if (route.name === 'Settings') iconName = isFocused ? 'settings' : 'settings-outline';
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+          });
+
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
+
+        return (
+          <View key={index} style={styles.iconWrapper}>
+            <Ionicons
+              name={iconName}
+              size={moderateScale(24)}
+              color={isFocused ? '#007AFF' : '#8e8e93'}
+              onPress={onPress}
+            />
+            {isFocused && <View style={styles.activeIndicator} />}
+          </View>
+        );
+      })}
+    </View>
+  );
 };
 
-// ✅ Create the tab navigator with the defined types
-const Tab = createBottomTabNavigator<MainTabParamList>();
+export default function MainTabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <CustomTabBar {...props} />}
+    >
+      <Tab.Screen name="Home" component={HomeScreen} />
+      {/* <Tab.Screen name="Profile" component={ProfileScreen} /> */}
+      {/* <Tab.Screen name="Settings" component={SettingsScreen} /> */}
+    </Tab.Navigator>
+  );
+}
 
-// ✅ Define prop types for the icon render function
-type TabBarIconProps = {
-    focused: boolean;
-    color: string;
-    size: number;
-};
-
-// ✅ Component
-const MainTabNavigator: React.FC = () => {
-    return (
-        <Tab.Navigator
-            screenOptions={({
-                route,
-            }: {
-                route: RouteProp<MainTabParamList, keyof MainTabParamList>;
-            }): BottomTabNavigationOptions => ({
-                tabBarIcon: ({ color, size }: TabBarIconProps) => {
-                    let iconName = '';
-
-                    switch (route.name) {
-                        case 'Home':
-                            iconName = 'home-outline';
-                            break;
-                        case 'Profile':
-                            iconName = 'person-outline';
-                            break;
-                        case 'Settings':
-                            iconName = 'settings-outline';
-                            break;
-                    }
-
-                    return <Ionicons name={iconName} size={size} color={color} />;
-                },
-                tabBarActiveTintColor: '#007AFF',
-                tabBarInactiveTintColor: 'gray',
-                headerShown: false,
-            })}
-        >
-            <Tab.Screen name="Home" component={HomeScreen} />
-            {/* <Tab.Screen name="Profile" component={ProfileScreen} /> */}
-            {/* <Tab.Screen name="Settings" component={SettingsScreen} /> */}
-        </Tab.Navigator>
-    );
-};
-
-export default MainTabNavigator;
+const styles = StyleSheet.create({
+  tabBarContainer: {
+    position: 'absolute',
+    bottom: Platform.select({ ios: moderateScale(25), android: moderateScale(20) }),
+    left: '5%',
+    right: '5%',
+    height: moderateScale(65),
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: moderateScale(30),
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 5 },
+    shadowRadius: 10,
+  },
+  iconWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeIndicator: {
+    position: 'absolute',
+    bottom: -6,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#007AFF',
+  },
+});
