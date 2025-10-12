@@ -1,8 +1,9 @@
 import React, { FC } from "react";
-import { StyleSheet, View, TextInput, Dimensions, TextInputProps } from "react-native";
+import { StyleSheet, View, TextInput, TextInputProps, Platform } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
-
-const { width } = Dimensions.get("window");
+import { BlurView } from "@react-native-community/blur";
+import LinearGradient from "react-native-linear-gradient";
+import { moderateScale } from "../theme/metrics";
 
 interface SearchBarProps extends TextInputProps {
   value: string;
@@ -12,39 +13,63 @@ interface SearchBarProps extends TextInputProps {
 
 const SearchBar: FC<SearchBarProps> = ({ value, onChangeText, placeholder = "Search...", ...rest }) => {
   return (
-    <View style={styles.container}>
-      <Icon name="search" size={width * 0.06} color="#aaa" style={styles.icon} />
-      <TextInput
-        style={styles.input}
-        placeholder={placeholder}
-        placeholderTextColor="#aaa"
-        onChangeText={onChangeText}
-        value={value}
-        {...rest}
+    <View style={styles.wrapper}>
+      {/* Blur background */}
+      <BlurView
+        blurType={Platform.OS === "ios" ? "light" : "light"}
+        blurAmount={16}
       />
+      {/* Simulated inset/glow using gradient */}
+      <LinearGradient
+        colors={["#0F0D23", "#0F0D23"]}
+      />
+
+      {/* Content */}
+      <View style={styles.innerContainer}>
+        <Icon name="search" style={styles.icon} />
+        <TextInput
+          style={styles.input}
+          placeholder={placeholder}
+          placeholderTextColor="#A8B5DB"
+          onChangeText={onChangeText}
+          value={value}
+          {...rest}
+        />
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
+    width: '91%',
+    borderRadius: moderateScale(30),
+    overflow: "hidden",
+    alignSelf: "center",
+    marginHorizontal: 'auto',
+    backgroundColor: "#0F0D23",
+    shadowColor: "#CECEFB",
+    shadowOffset: { width: 12, height: 12 },
+    shadowOpacity: 0.05,
+    shadowRadius: 32,
+    elevation: 5,
+  },
+  innerContainer: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1c1c1c",
-    borderRadius: width * 0.05,
-    paddingHorizontal: width * 0.04,
-    width: width * 0.9, // 90% of screen width
-    height: width * 0.12, // responsive height
-    alignSelf: "center",
-    marginVertical: 12,
+    paddingHorizontal: moderateScale(14),
+    paddingVertical : moderateScale(0)
   },
   icon: {
-    marginRight: width * 0.02,
+    marginRight: moderateScale(10),
+    color: "#AB8BFF",
+    fontSize: moderateScale(18)
   },
   input: {
     flex: 1,
-    fontSize: width * 0.045,
-    color: "#fff",
+    fontSize: moderateScale(14),
+    color: "#A8B5DB",
   },
 });
 

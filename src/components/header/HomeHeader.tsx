@@ -1,8 +1,8 @@
-import { Dimensions, Image, ImageBackground, StyleSheet, Text, View } from 'react-native'
+import { Image, ImageBackground, StyleSheet, Text, View } from 'react-native'
 import React, { useState } from 'react'
 import LinearGradient from 'react-native-linear-gradient'
 import SearchBar from '../SearchBar'
-const { width, height } = Dimensions.get("window");
+import { moderateScale, verticalScale } from '../../theme/metrics'
 
 const HomeHeader = () => {
     const [searchQuery, setSearchQuery] = useState("");
@@ -13,9 +13,9 @@ const HomeHeader = () => {
             resizeMode="stretch"
         >
             <LinearGradient
-                colors={["rgba(35, 42, 255, 0.6)", "#0b0e142c"]}
+                colors={["#232aff1e", "#03001416"]}
                 start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
+                end={{ x: 0, y: 1 }}
                 style={styles.overlay}
             >
                 {/* Logo + Text Row */}
@@ -31,10 +31,8 @@ const HomeHeader = () => {
                 <SearchBar
                     value={searchQuery}
                     onChangeText={setSearchQuery}
-                    placeholder="Search movies..."
+                    placeholder="Search through 300+ movies online"
                 />
-
-                <Text style={styles.text}>Top Section (Scrolls with list)</Text>
             </LinearGradient>
         </ImageBackground>
     )
@@ -44,37 +42,28 @@ export default HomeHeader
 
 const styles = StyleSheet.create({
     topSection: {
-        height: height * 0.4, // now scrolls with list
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: 12,
         width: '100%',
+     
     },
     overlay: {
-        ...StyleSheet.absoluteFillObject,
         justifyContent: "center",
         alignItems: "center",
-        // paddingHorizontal: 16,
     },
     logoRow: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 12,
+        paddingTop : moderateScale(88),
+        paddingBottom : verticalScale(24)
     },
     logo: {
-        width: width * 0.09,
-        height: width * 0.09,
-        marginRight: 8,
+        width: verticalScale(40),
+        height: verticalScale(40),
+        marginRight: moderateScale(8),
     },
     logoText: {
-        fontSize: width * 0.07,
+        fontSize: moderateScale(32),
         fontWeight: "bold",
         color: "#E50914",
         letterSpacing: 1,
-    },
-    text: {
-        color: "#fff",
-        fontSize: 18,
-        fontWeight: "bold",
     },
 })

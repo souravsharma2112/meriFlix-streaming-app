@@ -1,9 +1,11 @@
+/* eslint-disable react/no-unstable-nested-components */
 import React from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import HomeScreen from '../features/home/HomeScreen';
 import { moderateScale } from '../theme/metrics';
+import LinearGradient from 'react-native-linear-gradient';
 
 const Tab = createBottomTabNavigator();
 
@@ -31,15 +33,31 @@ const CustomTabBar = ({ state, navigation }: any) => {
         };
 
         return (
-          <View key={index} style={styles.iconWrapper}>
+          <View key={index} style={isFocused ? styles.iconWrapperActive : styles.iconWrapper}>
+          {isFocused ? (
+            <LinearGradient
+              colors={["#D6C7FF", "#AB8BFF"]}
+              start={{ x: 0, y: 1 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.gradientContainer}
+            >
+              <Ionicons
+                name={iconName}
+                size={moderateScale(18)}
+                color="#151312"
+                onPress={onPress}
+              />
+              <Text style={styles.tabActiveText}>{route.name}</Text>
+            </LinearGradient>
+          ) : (
             <Ionicons
               name={iconName}
-              size={moderateScale(24)}
-              color={isFocused ? '#007AFF' : '#8e8e93'}
+              size={moderateScale(18)}
+              color="#A8B5DB"
               onPress={onPress}
             />
-            {isFocused && <View style={styles.activeIndicator} />}
-          </View>
+          )}
+        </View>
         );
       })}
     </View>
@@ -53,8 +71,8 @@ export default function MainTabNavigator() {
       tabBar={(props) => <CustomTabBar {...props} />}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      {/* <Tab.Screen name="Profile" component={ProfileScreen} /> */}
-      {/* <Tab.Screen name="Settings" component={SettingsScreen} /> */}
+      <Tab.Screen name="Profile" component={() => <View><Text>Profile</Text></View>} />
+      <Tab.Screen name="Settings" component={() => <View><Text>Profile</Text></View>} />
     </Tab.Navigator>
   );
 }
@@ -63,30 +81,37 @@ const styles = StyleSheet.create({
   tabBarContainer: {
     position: 'absolute',
     bottom: Platform.select({ ios: moderateScale(25), android: moderateScale(20) }),
-    left: '5%',
-    right: '5%',
-    height: moderateScale(65),
+    width: '91%',
+    maxWidth: 480,
+    alignSelf: 'center',
+    marginHorizontal: 'auto',
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: moderateScale(30),
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 5 },
-    shadowRadius: 10,
+    backgroundColor: '#0F0D23',
+    borderRadius: moderateScale(70),
+  },
+  tabActiveText: {
+    fontWeight: 600,
+    fontSize: moderateScale(14),
+  },
+  gradientContainer: {
+    alignItems: 'center',
+    flexDirection:'row',
+    gap:moderateScale(5),
+    justifyContent: 'center',
+    borderRadius: moderateScale(50),
+    paddingVertical: moderateScale(15),
+    width:'100%',
   },
   iconWrapper: {
-    alignItems: 'center',
+    width:'33.33%',
+    flexDirection:'row',
     justifyContent: 'center',
   },
-  activeIndicator: {
-    position: 'absolute',
-    bottom: -6,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#007AFF',
+  iconWrapperActive: {
+    width:'33.33%',
+    flexDirection:'row',
+    justifyContent: 'center',
   },
 });

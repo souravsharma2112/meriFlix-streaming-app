@@ -1,18 +1,21 @@
 import { Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import React from 'react';
 // import { useNavigation } from '@react-navigation/native';
-import { moderateScale, verticalScale } from '../../../theme/metrics';
+import { moderateScale, scale, verticalScale } from '../../../theme/metrics';
+import { useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '../../../types/NavigationTypes';
+import type { StackNavigationProp } from '@react-navigation/stack';
+type MovieCardNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
-const MovieCard = () => {
-    //   const navigation = useNavigation();
+const MovieCard = ({ isCarousel = false }: { isCarousel?: boolean }) => {
+    const navigation = useNavigation<MovieCardNavigationProp>();
 
     const handlePress = () => {
-        // Navigate to MovieDetail screen (replace 'MovieDetail' with your screen name)
-        // navigation.navigate('MovieDetail', { movieId: 1 });
+        navigation.navigate('MovieDetail');
     }
 
     return (
-        <TouchableOpacity style={styles.card} onPress={handlePress}>
+        <TouchableOpacity style={!isCarousel ? styles.card : styles.cardWidth} onPress={handlePress}>
             <View>
                 <Image
                     source={require("../../../../assets/images/m1.png")}
@@ -30,8 +33,12 @@ export default MovieCard;
 
 const styles = StyleSheet.create({
     // width: scale(104),
+    cardWidth: {
+        width: scale(116)
+    },
     card: {
-        flex:1,
+        flex: 1,
+        maxWidth: scale(108),
         borderRadius: 4,
     },
     image: {
@@ -42,7 +49,7 @@ const styles = StyleSheet.create({
         fontSize: moderateScale(12),
         fontWeight: 700,
         lineHeight: moderateScale(16),
-        color :"#FFFFFF",
+        color: "#FFFFFF",
         marginTop: moderateScale(9),
         marginBottom: moderateScale(8),
     },
