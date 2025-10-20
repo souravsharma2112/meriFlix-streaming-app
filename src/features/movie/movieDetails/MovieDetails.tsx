@@ -1,12 +1,16 @@
+/* eslint-disable react-native/no-inline-styles */
 import { Dimensions, FlatList, Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React from 'react';
-import { moderateScale, scale, verticalScale } from '../../theme/metrics';
+import { moderateScale, scale, verticalScale } from '../../../theme/metrics';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
+import { useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '../../../types/NavigationTypes';
+import { StackNavigationProp } from '@react-navigation/stack';
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 const { width } = Dimensions.get("window");
 
@@ -56,7 +60,7 @@ type IconWithContentProps = {
   iconColor: string;
   content: string;
 };
-
+type MovieCardNavigationProp = StackNavigationProp<RootStackParamList, 'MovieDetail2'>;
 const IconWithContent = ({ IconComponent, iconName, iconColor, content }: IconWithContentProps) => {
   return (
     <View style={styles.iconWithContentContainer}>
@@ -69,17 +73,20 @@ const MovieDetails = () => {
   const handleBack = () => {
     console.log('Back pressed');
   };
-
+  const navigation = useNavigation<MovieCardNavigationProp>();
   const handleShare = () => {
     console.log('Share pressed');
   };
+  const handlePlay = () => {
+    navigation.navigate('MovieDetail2')
+  }
   return (
     <>
       <ScrollView>
         <View style={styles.container}>
           <View style={styles.imageWrapper}>
             <Image
-              source={require('../../../assets/images/detail.png')}
+              source={require('../../../../assets/images/detail.png')}
               style={styles.image}
               resizeMode="cover"
             />
@@ -95,7 +102,7 @@ const MovieDetails = () => {
               </TouchableOpacity>
             </View>
             <View style={styles.videoPlayContainer}>
-              <TouchableOpacity onPress={handleShare} style={styles.videoButton}>
+              <TouchableOpacity onPress={handlePlay} style={styles.videoButton}>
                 <FontAwesome5 name="play" size={moderateScale(23)} color="#AB8BFF" />
               </TouchableOpacity>
             </View>
