@@ -3,7 +3,6 @@ import { StyleSheet, View, FlatList, Text } from "react-native";
 import HomeHeader from "../../components/header/HomeHeader";
 import MovieCard from "../../components/common/movieCard/MovieCard";
 import { moderateScale, verticalScale } from "../../theme/metrics";
-
 const movies = Array.from({ length: 20 }, (_, i) => ({
   id: i.toString(),
   title: `Movie ${i + 1}`,
