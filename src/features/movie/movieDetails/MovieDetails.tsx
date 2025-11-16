@@ -1,331 +1,409 @@
+/* eslint-disable react/no-unstable-nested-components */
 /* eslint-disable react-native/no-inline-styles */
-import { Dimensions, FlatList, Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import React from 'react';
-import { moderateScale, scale, verticalScale } from '../../../theme/metrics';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Fontisto from 'react-native-vector-icons/Fontisto';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Entypo from 'react-native-vector-icons/Entypo';
-import { useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from '../../../types/NavigationTypes';
-import { StackNavigationProp } from '@react-navigation/stack';
-const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
-const { width } = Dimensions.get("window");
+import {
+  FlatList,
+  Image,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import React, { ReactNode, useState } from "react";
+import {
+  moderateScale,
+  scale,
+  verticalScale,
+} from "../../../theme/metrics";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+import Fontisto from "react-native-vector-icons/Fontisto";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import Entypo from "react-native-vector-icons/Entypo";
+import { useRoute, RouteProp } from "@react-navigation/native";
+import { RootStackParamList } from "../../../types/NavigationTypes";
+import { useMovieDetailsByID, useMovieVideoDetailsByID } from "../../../hooks/queries/useMovies";
+import { BASE_IMAGE_URL } from "@env";
+import VideoPlayer from "../_components/VideoPlayer";
+import { StyleProp, ViewStyle } from "react-native";
+import { useGetYoutubeDirectURL } from "../../../hooks/queries/useYoutube";
+type DetailsRouteProp = RouteProp<RootStackParamList, "MovieDetail">;
 
-const movie = {
-  adult: false,
-  backdrop_path: "/9DYFYhmbXRGsMhfUgXM3VSP9uLX.jpg",
-  belongs_to_collection: {
-    id: 313086,
-    name: "The Conjuring Collection The Conjuring Collection The Conjuring Collection",
-    poster_path: "/z5VKhNSQKQyxm0co68HAkCqHnmX.jpg",
-    backdrop_path: "/kHZaX0vuhZdbuq0WKU3BpA9WIQ0.jpg",
-  },
-  budget: 55000000,
-  genres: [{ id: 27, name: "Horror" }],
-  homepage: "http://www.theconjuringmovie.com",
-  id: 1038392,
-  imdb_id: "tt22898462",
-  origin_country: ["US"],
-  original_language: "en",
-  original_title: "The Conjuring: Last Rites",
-  overview:
-    "Paranormal investigators Ed and Lorraine Warren take on one last terrifying case involving mysterious entities they must confront.",
-  popularity: 650.5492,
-  poster_path: "/gXMnx7C3cufzBHPZynWZLUHOMOT.jpg",
-  production_companies: [
-    { id: 12, name: "New Line Cinema", logo_path: "/2ycs64eqV5rqKYHyQK0GVoKGvfX.png", origin_country: "US" },
-    { id: 76907, name: "Atomic Monster", logo_path: "/ygMQtjsKX7BZkCQhQZY82lgnCUO.png", origin_country: "US" },
-    { id: 11565, name: "The Safran Company", logo_path: "/odU3l6csuBmXUrzFm6araUgEUHQ.png", origin_country: "US" },
-    { id: 216687, name: "Domain Entertainment", logo_path: "/kKVYqekveOvLK1IgqdJojLjQvtu.png", origin_country: "US" },
-  ],
-  production_countries: [{ iso_3166_1: "US", name: "United States of America" }],
-  release_date: "2025-09-03",
-  revenue: 467157072,
-  runtime: 135,
-  spoken_languages: [{ english_name: "English", iso_639_1: "en", name: "English" }],
-  status: "Released",
-  tagline: "The case that ended it all.",
-  title: "The Conjuring: Last Rites The Conjuring Collection The Conjuring Collection",
-  video: false,
-  vote_average: 6.9,
-  vote_count: 839,
-};
-
-type IconWithContentProps = {
-  IconComponent: any; // The icon component itself
-  iconName: string;
-  iconColor: string;
-  content: string;
-};
-type MovieCardNavigationProp = StackNavigationProp<RootStackParamList, 'MovieDetail2'>;
-const IconWithContent = ({ IconComponent, iconName, iconColor, content }: IconWithContentProps) => {
-  return (
-    <View style={styles.iconWithContentContainer}>
-      <IconComponent name={iconName} size={moderateScale(14)} color={iconColor} />
-      <Text style={styles.infoText}>{content}</Text>
-    </View>
-  );
+const IconWithContent = ({ IconComponent, iconName, iconColor, content }: any) => (
+  <View style={styles.iconWithContentContainer}>
+    <IconComponent
+      name={iconName}
+      size={moderateScale(14)}
+      color={iconColor}
+    />
+    <Text style={styles.infoText}>{content}</Text>
+  </View>
+);
+type DynamicWrapperProps = {
+  scroll?: boolean;             
+  style?: StyleProp<ViewStyle>; 
+  children: ReactNode;           
 };
 const MovieDetails = () => {
-  const handleBack = () => {
-    console.log('Back pressed');
-  };
-  const navigation = useNavigation<MovieCardNavigationProp>();
-  const handleShare = () => {
-    console.log('Share pressed');
-  };
-  const handlePlay = () => {
-    navigation.navigate('MovieDetail2')
+  const route = useRoute<DetailsRouteProp>();
+  const id = route?.params?.id;
+  console.log(id, "id");
+  
+  const [videoVisible, setVideoVisible] = useState<boolean>(false);
+  const { data: movie, isLoading } = useMovieDetailsByID(id);
+  const { data: movieVideo, isLoading:isVideoLoading } = useMovieVideoDetailsByID(id);
+  const { data: movieVideoPath, isLoading:isVideoPathLoading } = useGetYoutubeDirectURL(movieVideo?.results[4]?.key ?? "Lz5mf-kKPRc");
+
+ console.log(movieVideoPath, "movieVideoPath");
+ 
+  
+  const handlePlay = () => setVideoVisible(true);
+  if (isVideoPathLoading || isVideoLoading || isLoading || !movie) {
+    return (
+      <View style={styles.loader}>
+        <Text style={{ color: "#fff" }}>Loading...</Text>
+      </View>
+    );
+  }
+  const DynamicWrapper = ({ scroll, children, style }:DynamicWrapperProps) => {
+    const Wrapper = scroll ? ScrollView : View;
+    return <Wrapper style={style}>{children}</Wrapper>;
   }
   return (
-    <>
-      <ScrollView>
-        <View style={styles.container}>
+    <DynamicWrapper scroll={!videoVisible} style={{ flex: 1 }}>
+      <View style={styles.container}>
+        {/* HEADER IMAGE */}
+        {videoVisible ? (
+          <View>
+            <VideoPlayer data={movieVideoPath}/>
+          </View>
+        ) : (
           <View style={styles.imageWrapper}>
             <Image
-              source={require('../../../../assets/images/detail.png')}
+              source={{ uri: `${BASE_IMAGE_URL}${movie?.poster_path}` }}
               style={styles.image}
               resizeMode="cover"
             />
-            {/* Red overlay */}
             <View style={styles.overlay} />
+
             <View style={styles.actionContainer}>
-              <TouchableOpacity onPress={handleBack} style={styles.iconButton}>
-                <Ionicons name="arrow-back" size={moderateScale(24)} color="#fff" />
+              <TouchableOpacity style={styles.iconButton}>
+                <Ionicons name="arrow-back" size={24} color="#fff" />
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={handleShare} style={styles.iconButton}>
-                <Ionicons name="share-social-outline" size={moderateScale(24)} color="#fff" />
+              <TouchableOpacity style={styles.iconButton}>
+                <Ionicons name="share-social-outline" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
+
             <View style={styles.videoPlayContainer}>
               <TouchableOpacity onPress={handlePlay} style={styles.videoButton}>
-                <FontAwesome5 name="play" size={moderateScale(23)} color="#AB8BFF" />
+                <FontAwesome5 name="play" size={23} color="#AB8BFF" />
               </TouchableOpacity>
             </View>
           </View>
+        )}
 
-          <View style={styles.contentContainer}>
-            {/* Title and Tagline */}
-            <Text style={styles.title}>{movie.title}</Text>
-            <Text style={styles.tagline}>{movie.tagline}</Text>
 
-            {/* Basic Info */}
-            <View style={styles.row}>
-              <IconWithContent   IconComponent={FontAwesome}  iconName='star' iconColor='#FFCD1A' content={`${movie.vote_count} votes`} />
-              <IconWithContent IconComponent={Entypo} iconName='video' iconColor='#A8B5DB' content={`${movie.runtime} min`} />
-              <IconWithContent IconComponent={Fontisto} iconName='date' iconColor='#A8B5DB' content={`${movie.release_date}`} />
-            </View>
+        {/* CONTENT */}
+        <DynamicWrapper scroll={videoVisible} style={{ flex: 1 }}>
+        <View style={styles.contentContainer}>
+          <Text style={styles.title}>{movie?.title}</Text>
+          <Text style={styles.tagline}>{movie?.tagline}</Text>
 
-            {/* Adult */}
-            <Text style={styles.overview}>🔞 Adult: {movie.adult ? "Yes" : "No"}</Text>
-
-            {/* Original Info */}
-            <Text style={styles.overview}>🎬 Original Title: {movie.original_title}</Text>
-            <Text style={styles.overview}>🌐 Original Language: {movie.original_language.toUpperCase()}</Text>
-            <Text style={styles.overview}>🏳️ Origin Country: {movie.origin_country.join(", ")}</Text>
-
-            {/* Genres */}
-            <View style={{marginTop: moderateScale(10)}}>
-            <FlatList
-              data={movie.genres}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <View style={styles.iconWithContentContainer}>
-                  <Text style={styles.infoText}>{item.name}</Text>
-                </View>
-              )}
+          {/* BASIC INFO */}
+          <View style={styles.row}>
+            <IconWithContent
+              IconComponent={FontAwesome}
+              iconName="star"
+              iconColor="#FFCD1A"
+              content={`${movie?.vote_count ?? 0} votes`}
             />
-            </View>
+            <IconWithContent
+              IconComponent={Entypo}
+              iconName="video"
+              iconColor="#A8B5DB"
+              content={`${movie?.runtime ?? 0} min`}
+            />
+            <IconWithContent
+              IconComponent={Fontisto}
+              iconName="date"
+              iconColor="#A8B5DB"
+              content={movie?.release_date ?? "N/A"}
+            />
+          </View>
 
-            {/* Overview */}
-            <View style={styles.sectionContentWrapper}>
-              <Text style={styles.sectionTitle}>Overview</Text>
-              <Text style={styles.overview}>{movie.overview}</Text>
-            </View>
+          {/* INFO */}
+          <Text style={styles.overview}>🔞 Adult: {movie?.adult ? "Yes" : "No"}</Text>
+          <Text style={styles.overview}>🎬 Original Title: {movie?.original_title}</Text>
+          <Text style={styles.overview}>
+            🌐 Original Language: {movie?.original_language?.toUpperCase()}
+          </Text>
+          <Text style={styles.overview}>
+            🏳️ Origin Country: {movie?.origin_country?.join(", ")}
+          </Text>
 
-            {/* Belongs to Collection */}
-            <View style={styles.sectionContentWrapper}>
-              {movie.belongs_to_collection && (
-                <View>
-                  <Text style={styles.sectionTitle}>Collection</Text>
-                  <Text style={styles.overview}>{movie.belongs_to_collection.name}</Text>
-                  <Image
-                    source={{ uri: IMAGE_BASE_URL + movie.belongs_to_collection.poster_path }}
-                    style={styles.collectionPoster}
-                    resizeMode="cover"
-                  />
-                </View>
-              )}
-            </View>
+          {/* GENRES */}
+          <FlatList
+            data={movie?.genres ?? []}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(i) => i.id?.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.iconWithContentContainer}>
+                <Text style={styles.infoText}>{item?.name}</Text>
+              </View>
+            )}
+            style={{ marginTop: 10 }}
+          />
 
-            {/* Production Companies */}
+          {/* OVERVIEW */}
+          <Section title="Overview" content={movie?.overview} />
+
+          {/* COLLECTION */}
+          {movie?.belongs_to_collection && (
             <View style={styles.sectionContentWrapper}>
-              <Text style={styles.sectionTitle}>Production Companies</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
-                {movie.production_companies.map((company) => (
-                  <View key={company.id} style={styles.companyCard}>
+              <Text style={styles.sectionTitle}>Collection</Text>
+              <Text style={styles.overview}>
+                {movie?.belongs_to_collection?.name}
+              </Text>
+
+              <Image
+                source={{
+                  uri: BASE_IMAGE_URL + movie?.belongs_to_collection?.poster_path,
+                }}
+                style={styles.collectionPoster}
+              />
+            </View>
+          )}
+
+          {/* PRODUCTION COMPANIES */}
+          <View style={styles.sectionContentWrapper}>
+            <Text style={styles.sectionTitle}>Production Companies</Text>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {(movie?.production_companies ?? []).map((company: { logo_path: string; id: number; name: string; origin_country: string; }) => (
+                <View key={company?.id} style={styles.companyCard}>
+                  {company?.logo_path ? (
                     <Image
-                      source={{ uri: IMAGE_BASE_URL + company.logo_path }}
+                      source={{ uri: BASE_IMAGE_URL + company?.logo_path }}
                       style={styles.companyLogo}
                       resizeMode="contain"
                     />
-                    <Text style={styles.companyName}>{company.name}</Text>
-                    <Text style={styles.infoText}> {company.origin_country}</Text>
-                  </View>
-                ))}
-              </ScrollView>
-            </View>
-
-            {/* Production Countries */}
-            <View style={styles.sectionContentWrapper}>
-              <Text style={styles.sectionTitle}>Production Countries</Text>
-              {movie.production_countries.map((country, index) => (
-                <Text key={index} style={styles.overview}>{country.name} ({country.iso_3166_1})</Text>
+                  ) : (
+                    <View style={styles.noLogo} />
+                  )}
+                  <Text style={styles.companyName}>{company?.name}</Text>
+                  <Text style={styles.infoText}>{company?.origin_country}</Text>
+                </View>
               ))}
-            </View>
-            {/* Spoken Languages */}
-            <View style={styles.sectionContentWrapper}>
-              <Text style={styles.sectionTitle}>Spoken Languages</Text>
-              {movie.spoken_languages.map((lang, index) => (
-                <Text key={index} style={styles.overview}> {lang.english_name} ({lang.iso_639_1})</Text>
-              ))}
-            </View>
-            {/* Budget & Revenue */}
-            <View style={styles.row}>
-            <IconWithContent IconComponent={MaterialIcons} iconName='attach-money' iconColor='#A8B5DB' content={`Budget: ${movie.budget.toLocaleString()}`} />
-            <IconWithContent IconComponent={Ionicons} iconName='pie-chart' iconColor='#A8B5DB' content={`Revenue: ${movie.revenue.toLocaleString()}`} />
-            <IconWithContent IconComponent={FontAwesome} iconName='imdb' iconColor='#A8B5DB' content={`IMDB: ${movie.imdb_id}`} />
-            </View>
-            {/* IMDB & Homepage */}
-            <View style={styles.sectionContentWrapper}>
-              <Text style={styles.infoLink} onPress={() => Linking.openURL(movie.homepage)}>
-                🌐 Homepage
-              </Text>
-            </View>
+            </ScrollView>
           </View>
+
+          {/* PRODUCTION COUNTRIES */}
+          <Section
+            title="Production Countries"
+            content={(movie?.production_countries ?? [])
+              .map((c: { name: string; iso_3166_1: string; }) => `${c?.name} (${c?.iso_3166_1})`)
+              .join("\n")}
+          />
+
+          {/* SPOKEN LANGUAGES */}
+          <Section
+            title="Spoken Languages"
+            content={(movie?.spoken_languages ?? [])
+              .map((l: { english_name: string; iso_639_1: string; }) => `${l?.english_name} (${l?.iso_639_1})`)
+              .join("\n")}
+          />
+
+          {/* BUDGET & REVENUE */}
+          <View style={styles.row}>
+            <IconWithContent
+              IconComponent={MaterialIcons}
+              iconName="attach-money"
+              iconColor="#A8B5DB"
+              content={`Budget: ${movie?.budget?.toLocaleString()}`}
+            />
+            <IconWithContent
+              IconComponent={Ionicons}
+              iconName="pie-chart"
+              iconColor="#A8B5DB"
+              content={`Revenue: ${movie?.revenue?.toLocaleString()}`}
+            />
+            <IconWithContent
+              IconComponent={FontAwesome}
+              iconName="imdb"
+              iconColor="#A8B5DB"
+              content={`IMDB: ${movie?.imdb_id}`}
+            />
+          </View>
+
+          {/* HOMEPAGE */}
+          {movie?.homepage && (
+            <Text
+              style={styles.infoLink}
+              onPress={() => Linking.openURL(movie?.homepage)}
+            >
+              🌐 Homepage
+            </Text>
+          )}
         </View>
-      </ScrollView>
-    </>
+        </DynamicWrapper>
+      </View>
+    </DynamicWrapper>
+  );
+};
+
+/* ---------- SEPARATE SECTION COMPONENT ---------- */
+const Section = ({ title, content }: any) => {
+  if (!content) return null;
+
+  return (
+    <View style={styles.sectionContentWrapper}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text style={styles.overview}>{content}</Text>
+    </View>
   );
 };
 
 export default MovieDetails;
 
+/* ------------------- STYLES ------------------- */
 const styles = StyleSheet.create({
-  iconWithContentContainer:{
-    flexDirection:'row',
-    alignItems:'center',
-    gap: moderateScale(6),
-    paddingVertical: verticalScale(9),
-    paddingHorizontal: scale(12),
-    backgroundColor: '#221F3D',
-    borderRadius: moderateScale(4),
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#030014",
   },
   container: {
     flex: 1,
-    backgroundColor: '#030014',
+    backgroundColor: "#030014",
   },
   imageWrapper: {
-    position: 'relative',
+    position: "relative",
   },
   image: {
-    width: '100%',
+    width: "100%",
     height: verticalScale(447),
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000000',
+    backgroundColor: "#000",
     opacity: 0.2,
   },
   contentContainer: {
-    flex: 1,
     paddingHorizontal: moderateScale(16),
     paddingVertical: moderateScale(40),
   },
   title: {
-    color: '#fff',
+    color: "#fff",
     fontSize: moderateScale(20),
-    lineHeight: moderateScale(28),
-    fontWeight: 700,
+    fontWeight: "700",
     marginBottom: 10,
   },
-  description: {
-    color: '#aaa',
-    fontSize: moderateScale(14),
-    fontWeight: 400,
-    lineHeight: 20,
+  tagline: {
+    color: "#aaa",
+    fontSize: 14,
+    fontStyle: "italic",
+    marginBottom: 12,
   },
   actionContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: verticalScale(40),
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    width: "100%",
     paddingHorizontal: moderateScale(16),
-    paddingVertical: moderateScale(8),
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   iconButton: {
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: "rgba(255,255,255,0.3)",
     padding: moderateScale(8),
     borderRadius: moderateScale(20),
   },
   videoPlayContainer: {
-    position: 'absolute',
-    bottom: '-6%',
+    position: "absolute",
+    bottom: "-6%",
     right: moderateScale(45),
   },
   videoButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#fff",
     width: scale(46),
     height: scale(46),
-    justifyContent: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: scale(23),
-    paddingLeft: moderateScale(4),
-    alignItems: 'center',
+    paddingLeft: 4,
   },
-
-
-  // --------------- 
-  backdrop: { width: width, height: 220 },
-  tagline: { color: "#aaa", fontSize: 14, fontStyle: "italic", marginBottom: 12 },
-  row: { flexDirection: "row", gap: scale(10), marginBottom: 12 , flexWrap : 'wrap' },
-  infoText: { color: "#ccc", fontSize: 12, marginBottom: 4 },
-  infoLink: { color: "#4DA6FF", fontSize: 12, marginBottom: 4, textDecorationLine: "underline" },
-  genreBadge: {
-    backgroundColor: "#292647",
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 20,
-    marginRight: 8,
-    marginBottom: 8,
+  row: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: scale(10),
+    marginBottom: 12,
   },
-  genreText: { color: "#fff", fontSize: 12 },
+  iconWithContentContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: moderateScale(6),
+    paddingVertical: verticalScale(9),
+    paddingHorizontal: scale(12),
+    backgroundColor: "#221F3D",
+    borderRadius: 4,
+  },
+  infoText: {
+    color: "#ccc",
+    fontSize: 12,
+  },
+  infoLink: {
+    color: "#4DA6FF",
+    fontSize: 12,
+    marginTop: 10,
+    textDecorationLine: "underline",
+  },
   sectionTitle: {
     color: "#A8B5DB",
     fontSize: moderateScale(12),
-    fontWeight: 400,
     marginBottom: moderateScale(8),
   },
   sectionContentWrapper: {
-    marginBlock: verticalScale(20),
+    marginVertical: verticalScale(20),
   },
-  overview: { color: "#ccc", fontSize: 14, lineHeight: 20 },
-  collectionPoster: { width: 150, height: 225, borderRadius: 10, marginTop: 8 },
+  overview: {
+    color: "#ccc",
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  collectionPoster: {
+    width: 150,
+    height: 225,
+    borderRadius: 10,
+    marginTop: 8,
+  },
   companyCard: {
     width: 100,
     alignItems: "center",
+    padding: 8,
     marginRight: 12,
     backgroundColor: "#292647",
     borderRadius: 10,
-    padding: 8,
   },
-  companyLogo: { width: 60, height: 60, marginBottom: 4 },
-  companyName: { color: "#fff", fontSize: 12, textAlign: "center" },
+  companyLogo: {
+    width: 60,
+    height: 60,
+    marginBottom: 4,
+  },
+  noLogo: {
+    width: 60,
+    height: 60,
+    backgroundColor: "#111",
+    borderRadius: 6,
+    marginBottom: 4,
+  },
+  companyName: {
+    color: "#fff",
+    fontSize: 12,
+    textAlign: "center",
+  },
 });

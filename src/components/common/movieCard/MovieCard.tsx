@@ -1,29 +1,56 @@
 import { Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 // import { useNavigation } from '@react-navigation/native';
 import { moderateScale, scale, verticalScale } from '../../../theme/metrics';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../../types/NavigationTypes';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { BASE_IMAGE_URL } from '@env'
+import { useGenreMovieList } from '../../../hooks/queries/useConfiguration';
 type MovieCardNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
-
-const MovieCard = ({ isCarousel = false }: { isCarousel?: boolean }) => {
+interface MovieCardProps {
+    isCarousel?: boolean;
+    data?: { item: {id: number, genre_ids: number[]; backdrop_path?: string; title?: string ; name: string; } };
+}
+const MovieCard = ({ isCarousel = false, data }: MovieCardProps) => {
+    const { isLoading, data: genreData } = useGenreMovieList();
+    const cardData = data?.item
+    const genreIDS = data?.item?.genre_ids;
+    const title = data?.item?.title ? data?.item?.title : data?.item?.name;
     const navigation = useNavigation<MovieCardNavigationProp>();
+    const [genresNames, setGenreNames] = useState<string>("");
+    const handlePress = (id: number) => { navigation.navigate('MovieDetail' , {id : id}) }
 
-    const handlePress = () => {
-        navigation.navigate('MovieDetail');
+    useEffect(() => {
+        if (data) {
+            if (genreIDS && genreData) {
+                genreIDS.forEach((id: number) => {
+                    const genre = genreData?.genres?.find((g: { id: number; name: string }) => +g.id === +id);
+                    setGenreNames(genre?.name);
+                })
+            }
+        }
+    }, [data, genreData, genreIDS]);
+
+
+    if (isLoading) {
+        return <Text>Loading...</Text>
     }
 
     return (
-        <TouchableOpacity style={!isCarousel ? styles.card : styles.cardWidth} onPress={handlePress}>
+        <TouchableOpacity style={!isCarousel ? styles.card : styles.cardWidth} onPress={() => handlePress(cardData?.id!)}>
             <View>
                 <Image
-                    source={require("../../../../assets/images/m1.png")}
+                    source={
+                        cardData?.backdrop_path
+                            ? { uri: `${BASE_IMAGE_URL}${cardData.backdrop_path}` }
+                            : require("../../../../assets/images/m1.png")
+                    }
                     style={styles.image}
                     resizeMode="cover"
                 />
-                <Text style={styles.title}>Gladiator II</Text>
-                <Text style={styles.genre}>Action • Movie</Text>
+                <Text style={styles.title}>{title ?? "Title"}</Text>
+                <Text style={styles.genre}>{genresNames} • Movie</Text>
             </View>
         </TouchableOpacity>
     );
