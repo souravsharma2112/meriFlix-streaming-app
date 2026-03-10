@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import { StyleSheet, View, TextInput, TextInputProps, Platform } from "react-native";
+import { StyleSheet, View, TextInput, TextInputProps, Platform, Pressable } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { BlurView } from "@react-native-community/blur";
 import LinearGradient from "react-native-linear-gradient";
@@ -9,11 +9,24 @@ interface SearchBarProps extends TextInputProps {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
+  onPressBar?: () => void;
 }
 
-const SearchBar: FC<SearchBarProps> = ({ value, onChangeText, placeholder = "Search...", ...rest }) => {
+const SearchBar: FC<SearchBarProps> = ({
+  value,
+  onChangeText,
+  placeholder = "Search...",
+  onPressBar,
+  ...rest
+}) => {
+  const isPressOnly = typeof onPressBar === "function";
+
   return (
-    <View style={styles.wrapper}>
+    <Pressable
+      style={styles.wrapper}
+      onPress={onPressBar}
+      disabled={!isPressOnly}
+    >
       {/* Blur background */}
       <BlurView
         blurType={Platform.OS === "ios" ? "light" : "light"}
@@ -25,7 +38,7 @@ const SearchBar: FC<SearchBarProps> = ({ value, onChangeText, placeholder = "Sea
       />
 
       {/* Content */}
-      <View style={styles.innerContainer}>
+      <View style={styles.innerContainer} pointerEvents={isPressOnly ? "none" : "auto"}>
         <Icon name="search" style={styles.icon} />
         <TextInput
           style={styles.input}
@@ -33,10 +46,11 @@ const SearchBar: FC<SearchBarProps> = ({ value, onChangeText, placeholder = "Sea
           placeholderTextColor="#A8B5DB"
           onChangeText={onChangeText}
           value={value}
+          editable={!isPressOnly}
           {...rest}
         />
       </View>
-    </View>
+    </Pressable>
   );
 };
 

@@ -1,11 +1,12 @@
 import { Image, ImageBackground, StyleSheet, Text, View } from 'react-native'
-import React, { useState } from 'react'
+import React from 'react'
 import LinearGradient from 'react-native-linear-gradient'
 import SearchBar from '../SearchBar'
 import { moderateScale, verticalScale } from '../../theme/metrics'
+import { useNavigation } from '@react-navigation/native'
 
 const HomeHeader = () => {
-    const [searchQuery, setSearchQuery] = useState("");
+    const navigation = useNavigation<any>()
     return (
         <ImageBackground
             source={require("../../../assets/images/homebg.png")}
@@ -29,9 +30,10 @@ const HomeHeader = () => {
                 </View>
 
                 <SearchBar
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
+                    value=""
+                    onChangeText={() => {}}
                     placeholder="Search through 300+ movies online"
+                    onPressBar={() => navigation.navigate('searchScreen')}
                 />
             </LinearGradient>
         </ImageBackground>

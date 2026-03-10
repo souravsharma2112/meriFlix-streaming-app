@@ -11,19 +11,27 @@ import {
   useTrendingWeekMovies,
   useUpcomingMovies,
 } from "../../hooks/queries/useMovies";
+import ExploreButton from "../../components/ui/button/ExploreButton";
 
 
 const skeletonItems = Array.from({ length: 9 }, (_, i) => ({ id: `${i}` }));
 
 interface SectionProps {
   title: string;
+  category?: string;
   data: any[];
   isLoading: boolean;
 }
 
-const HorizontalSection = ({ title, data, isLoading }: SectionProps) => (
+const HorizontalSection = ({ title, category, data, isLoading }: SectionProps) => (
   <View style={styles.sectionHorizontal}>
+     <View style={styles.spaceBetween}>
     <Text style={styles.sectionTitle}>{title}</Text>
+     <ExploreButton
+          title="Explore All"
+          category={category}
+        />
+        </View>
 
     <FlatList
       data={isLoading ? skeletonItems : data}
@@ -42,9 +50,15 @@ const HorizontalSection = ({ title, data, isLoading }: SectionProps) => (
   </View>
 );
 
-const GridSection = ({ title, data, isLoading }: SectionProps) => (
+const GridSection = ({ title, category, data, isLoading }: SectionProps) => (
   <View style={styles.sectionGrid}>
+    <View style={styles.spaceBetween}>
     <Text style={styles.sectionTitle}>{title}</Text>
+     <ExploreButton
+          title="Explore All"
+          category={category}
+        />
+        </View>
 
     <FlatList
       data={isLoading ? data : data}
@@ -58,10 +72,10 @@ const GridSection = ({ title, data, isLoading }: SectionProps) => (
 );
 
 const HomeScreen = () => {
-  const { isLoading: loadingUpcoming, data: upcoming } = useUpcomingMovies();
-  const { isLoading: loadingPopular, data: popular } = usePopularMovies();
-  const { isLoading: loadingTrendingNow, data: trendingNow } = useTrendingNowMovies();
-  const { isLoading: loadingWeek, data: trendingWeek } = useTrendingWeekMovies();
+  const { isPending: loadingUpcoming, data: upcoming } = useUpcomingMovies();
+  const { isPending: loadingPopular, data: popular } = usePopularMovies();
+  const { isPending: loadingTrendingNow, data: trendingNow } = useTrendingNowMovies();
+  const { isPending: loadingWeek, data: trendingWeek } = useTrendingWeekMovies();
 
   const sections = [
     { key: "header" },
@@ -86,6 +100,7 @@ const HomeScreen = () => {
               return (
                 <HorizontalSection
                   title="Upcoming Movies"
+                  category="upcoming"
                   data={upcoming?.results}
                   isLoading={loadingUpcoming}
                 />
@@ -95,6 +110,7 @@ const HomeScreen = () => {
               return (
                 <GridSection
                   title="Trending Now"
+                  category="trendingNow"
                   data={trendingNow?.results?.slice(0, 9) ?? []}
                   isLoading={loadingTrendingNow}
                 />
@@ -104,6 +120,7 @@ const HomeScreen = () => {
               return (
                 <HorizontalSection
                   title="Trending Week"
+                  category="trendingWeek"
                   data={trendingWeek?.results}
                   isLoading={loadingWeek}
                 />
@@ -113,13 +130,14 @@ const HomeScreen = () => {
               return (
                 <HorizontalSection
                   title="Popular Shows"
+                  category="popular"
                   data={popular?.results}
                   isLoading={loadingPopular}
                 />
               );
 
             case "latest":
-              return <GridSection title="Latest Shows" data={skeletonItems} isLoading={true} />;
+              return <GridSection title="Latest Shows" category="latest" data={skeletonItems} isLoading={true} />;
 
             default:
               return null;
@@ -136,6 +154,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#030014",
+  },
+
+  spaceBetween:{
+    flexDirection : 'row',
+    alignItems : 'center',
+    justifyContent:'space-between',
+    marginBottom: verticalScale(14),
   },
 
   /* Horizontal section */
@@ -164,7 +189,6 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(18),
     fontWeight: "700",
     color: "#fff",
-    marginBottom: verticalScale(14),
   },
 });
 

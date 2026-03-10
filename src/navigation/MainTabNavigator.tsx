@@ -4,6 +4,8 @@ import { View, StyleSheet, Platform, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import HomeScreen from '../features/home/HomeScreen';
+import ProfileScreen from '../features/profile/ProfileScreen';
+import SettingsScreen from '../features/settings/SettingsScreen';
 import { moderateScale } from '../theme/metrics';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -71,8 +73,8 @@ export default function MainTabNavigator() {
       tabBar={(props) => <CustomTabBar {...props} />}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Profile" component={() => <View><Text>Profile</Text></View>} />
-      <Tab.Screen name="Settings" component={() => <View><Text>Profile</Text></View>} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
   );
 }
